@@ -1,7 +1,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 #include "client.h"
+#include "signup.h"
+#include "battleform.h"
 #include <QMainWindow>
+extern client* user;
 namespace Ui {
 class MainWindow;
 }
@@ -18,11 +21,15 @@ private slots:
 
     void on_signIn_pushButton_clicked();
 
-    void on_signUp_pushButton_clicked();
+
+    void on_signUp_pushButton_2_clicked();
 
 private:
     Ui::MainWindow *ui;
-    client *user;
+    signup *signUpForm;
+    battleForm *myBattleForm;
+public slots:
+    void showForm();
 };
 
 #endif // MAINWINDOW_H
