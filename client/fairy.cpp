@@ -1,4 +1,4 @@
-
+#include "fairy.h"
 
 fairy::fairy(/* args */)
 {
@@ -18,6 +18,14 @@ void fairy::check_attribute()
     if(defense>20) defense=20;
     if(life>200) life=200;
     if(attack_interval<1) attack_interval=1;
+}
+
+void fairy::attack(fairy*){
+
+}
+
+void fairy::hurted(int power){
+
 }
 
 

@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QMessageBox>
+
 #include "client.h"
 extern client *user;
 namespace Ui {
@@ -24,7 +26,7 @@ private slots:
     void on_signIn_pushButton_clicked();
 
     void on_signUp_pushButton_2_clicked();
-
+    void signUp_usernameExisted();
 private:
     Ui::signup *ui;
 signals:

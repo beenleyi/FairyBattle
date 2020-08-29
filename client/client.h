@@ -20,6 +20,14 @@ public:
 private:
     QTcpSocket *mysocket;
     QList<fairy*> myfairies;
+private slots:
+    void preProcessRecvData();
+signals:
+    void signUp_usernameExisted();
+    void signUp_signUpSecceed();
+    void signIn_signInSecceed();
+    void signIn_passwordErr();
+    void signIn_accountNotExist();
 };
 
 #endif // CLIENT_H

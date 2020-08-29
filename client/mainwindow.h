@@ -4,6 +4,7 @@
 #include "signup.h"
 #include "battleform.h"
 #include <QMainWindow>
+#include <QMessageBox>
 extern client* user;
 namespace Ui {
 class MainWindow;
@@ -23,7 +24,10 @@ private slots:
 
 
     void on_signUp_pushButton_2_clicked();
-
+    void signIn_signInSecceed();
+    void signIn_passwordErr();
+    void signIn_accountNotExist();
+    void signUp_signUpsecceed();
 private:
     Ui::MainWindow *ui;
     signup *signUpForm;

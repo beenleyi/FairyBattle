@@ -8,5 +8,11 @@ public:
     myTcpSocket(QTcpSocket*);
     QTcpSocket* qtcpsocket;
 public slots:
-    void processRecvData();
+    void preProcessRecvData();
+    void sendInfo(int);
+signals:
+    void getSignInBag(QJsonObject*);
+    void getSignUpBag(QJsonObject*);
+    void getSignOutBag(QJsonObject*);
+
 };

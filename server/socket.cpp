@@ -4,13 +4,23 @@ myTcpSocket::myTcpSocket(QTcpSocket* tempsocket){
     qtcpsocket=tempsocket;
 }
 
-void myTcpSocket::processRecvData(){
-    QJsonObject recvdata;
-    QJsonDocument recvdocument;
-    QByteArray recvarray= this->qtcpsocket->readAll();
-    recvdocument=QJsonDocument::fromJson(recvarray);
-    recvdata=recvdocument.object();
-    int event=recvdata.value("event").toInt();
-    QString username=recvdata.value("username").toString();
-    qDebug()<<event<<endl<<username;
+void myTcpSocket::preProcessRecvData(){
+    QJsonObject *recvdata;
+    recvdata=new QJsonObject;
+    *recvdata=QJsonDocument::fromJson(this->qtcpsocket->readAll()).object();
+    int event=recvdata->value("event").toInt();
+    if(event==0)//sign in
+        emit getSignInBag(recvdata);
+    else if(event==1)
+        emit getSignUpBag(recvdata);
+    else if(event==2)
+        emit getSignOutBag(recvdata);
+}
+
+void myTcpSocket::sendInfo(int infoType){
+    QJsonObject *info;
+    info=new QJsonObject;
+    *info={{"event",infoType}};
+    qtcpsocket->write(QJsonDocument(*info).toJson());
+    qtcpsocket->waitForBytesWritten();
 }

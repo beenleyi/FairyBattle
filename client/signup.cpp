@@ -31,3 +31,19 @@ void signup::on_signUp_pushButton_2_clicked()
     };
     user->sendMessage(signUpBag);
 }
+
+void signup::signUp_usernameExisted(){
+    QMessageBox messageBox(QMessageBox::NoIcon,
+                           "Error", "username has existed.\nPlease use other usernames.",
+                           QMessageBox::Ok, NULL);
+    int result=messageBox.exec();
+    switch (result)
+    {
+    case QMessageBox::Ok:
+        messageBox.close();
+        break;
+    default:
+        break;
+    }
+    return;
+}

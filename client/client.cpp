@@ -11,26 +11,17 @@ int client::connectToHost(){
     mysocket->connectToHost(serverIP,port);
     int connected=mysocket->waitForConnected();
     if(connected){
-        connect(mysocket,&QTcpSocket::readyRead,[=](){
-            QByteArray buf=mysocket->readAll();
-        }
-        );
+        connect(mysocket,SIGNAL(readyRead()),this,SLOT(preProcessRecvData()));
         return 1;
     }else{
         QMessageBox messageBox(QMessageBox::NoIcon,
                                "Error", "Cannot connect to server.\nCheck your network and make sure that server is open.",
-                               QMessageBox::Yes, NULL);
+                               QMessageBox::Ok, NULL);
         int result=messageBox.exec();
-
-
         switch (result)
         {
-        case QMessageBox::Yes:
-            qDebug()<<"Yes";
+        case QMessageBox::Ok:
             close();
-            break;
-        case QMessageBox::No:
-            qDebug()<<"NO";
             break;
         default:
             break;
@@ -43,4 +34,28 @@ int client::connectToHost(){
 void client::sendMessage(QJsonObject *sendBag){
     mysocket->write(QJsonDocument(*sendBag).toJson());
     mysocket->waitForBytesWritten();
+}
+
+void client::preProcessRecvData(){
+    QJsonObject *recvdata;
+    recvdata=new QJsonObject;
+    *recvdata=QJsonDocument::fromJson(this->mysocket->readAll()).object();
+    int event=recvdata->value("event").toInt();
+    switch (event) {
+    case 0:
+        emit signUp_usernameExisted();
+        break;
+    case 1:
+        emit signUp_signUpSecceed();
+        break;
+    case 2:
+        emit signIn_signInSecceed();
+        break;
+    case 3:
+        emit signIn_passwordErr();
+        break;
+    case 4:
+        emit signIn_accountNotExist();
+        break;
+    }
 }
