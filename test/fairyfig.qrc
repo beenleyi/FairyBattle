@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/new/fairyFig"/>
+    <qresource prefix="/">
+        <file>fig/Faye.jpg</file>
+        <file>fig/Faye.png</file>
+        <file>fig/icon.ico</file>
+    </qresource>
+</RCC>

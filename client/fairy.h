@@ -1,8 +1,8 @@
-
+#include <QString>
 /**********fairy************/
 class fairy
 {
-protected:
+public:
     /******
      * type
      * 0:powerful
@@ -10,6 +10,8 @@ protected:
      * 2:high defense
      * 3:sharp
      *****/
+    QString username;
+    QString fairyname;
     int type;
     int stage;//0-15
     int experience;//0-100
@@ -20,10 +22,10 @@ protected:
 public:
     fairy(/* args */);
     ~fairy();
-    virtual void upgrade();
+    virtual void upgrade()=0;
     void check_attribute();
-    virtual void attack(fairy* pfairy);
-    virtual void hurted(int power);
+    virtual void attack(fairy* pfairy)=0;
+    virtual void hurted(int power)=0;
 };
 
 

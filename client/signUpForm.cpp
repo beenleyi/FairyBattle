@@ -1,26 +1,28 @@
-#include "signup.h"
-#include "ui_signup.h"
+#include "signUpForm.h"
+#include "ui_signupform.h"
 
-signup::signup(QWidget *parent) :
+signUpForm::signUpForm(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::signup)
+    ui(new Ui::signUpForm)
 {
     ui->setupUi(this);
+    this->setWindowIcon(QIcon(":/fig/icon.ico"));
+    this->setWindowTitle("Crazy Arcade");
 }
 
-signup::~signup()
+signUpForm::~signUpForm()
 {
     delete ui;
 }
 
-void signup::on_signIn_pushButton_clicked()
+void signUpForm::on_signIn_pushButton_clicked()
 {
     emit showSignInFormReq();
 
     this->hide();
 }
 
-void signup::on_signUp_pushButton_2_clicked()
+void signUpForm::on_signUp_pushButton_clicked()
 {
     QJsonObject *signUpBag;
     signUpBag=new QJsonObject;
@@ -29,10 +31,10 @@ void signup::on_signUp_pushButton_2_clicked()
         {"username",ui->username_lineEdit->text()},
         {"password",ui->password_lineEdit->text()}
     };
-    user->sendMessage(signUpBag);
+    emit sendMessageReq(signUpBag);
 }
 
-void signup::signUp_usernameExisted(){
+void signUpForm::signUp_usernameExisted(){
     QMessageBox messageBox(QMessageBox::NoIcon,
                            "Error", "username has existed.\nPlease use other usernames.",
                            QMessageBox::Ok, NULL);

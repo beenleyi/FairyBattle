@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/new/fairyFig"/>
+    <qresource prefix="/">
+        <file>fig/Faye.jpg</file>
+        <file>fig/Faye.png</file>
+        <file>fig/icon.ico</file>
+        <file>fig/Beenle.png</file>
+        <file>fig/Hebe.png</file>
+        <file>fig/Kay.png</file>
+        <file>fig/Lala.png</file>
+        <file>fig/Squirrel.png</file>
+    </qresource>
+</RCC>

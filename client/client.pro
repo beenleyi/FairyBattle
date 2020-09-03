@@ -24,25 +24,36 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 
-SOURCES += \
-        main.cpp \
-        mainwindow.cpp \
-    client.cpp \
-    signup.cpp \
-    battleform.cpp \
-    upgradebattleform.cpp \
-    fairy.cpp
 
-HEADERS += \
-        mainwindow.h \
-    client.h \
-    signup.h \
-    battleform.h \
-    upgradebattleform.h \
-    fairy.h
 
 FORMS += \
-        mainwindow.ui \
-    signup.ui \
-    battleform.ui \
-    upgradebattleform.ui
+    signupform.ui \
+    signinform.ui \
+    userform.ui \
+    battlefieldform.ui \
+    selectopponentform.ui
+
+RESOURCES += \
+    fairyfig.qrc
+
+DISTFILES += \
+    fig/icon.ico
+
+HEADERS += \
+    client.h \
+    fairy.h \
+    signinform.h \
+    signUpForm.h \
+    userForm.h \
+    battlefieldform.h \
+    selectopponentform.h
+
+SOURCES += \
+    client.cpp \
+    fairy.cpp \
+    main.cpp \
+    signinform.cpp \
+    signUpForm.cpp \
+    userForm.cpp \
+    battlefieldform.cpp \
+    selectopponentform.cpp

@@ -18,7 +18,6 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    myTcpServer *server;
 };
 
 #endif // MAINWINDOW_H

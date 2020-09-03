@@ -8,29 +8,18 @@ fairy::~fairy()
 {
 }
 
-void fairy::upgrade()
-{
-}
-
 void fairy::check_attribute()
 {
     if(aggressivity>20) aggressivity=20;
     if(defense>20) defense=20;
-    if(life>200) life=200;
+    if(life>150) life=200;
     if(attack_interval<1) attack_interval=1;
-}
-
-void fairy::attack(fairy*){
-
-}
-
-void fairy::hurted(int power){
-
 }
 
 
 Faye::Faye(/* args */)
 {
+    fairyname="Faye";
     type=2;
     stage=1;
     experience=0;
@@ -65,6 +54,7 @@ void Faye::hurted(int power){
 
 Hebe::Hebe(/* args */)
 {
+    fairyname="Hebe";
     type=3;
     stage=1;
     experience=0;
@@ -100,6 +90,7 @@ void Hebe::hurted(int power){
 
 Lala::Lala(/* args */)
 {
+    fairyname="Lala";
     type=3;
     stage=1;
     experience=0;
@@ -134,6 +125,7 @@ void Lala::hurted(int power){
 
 Squirrel::Squirrel(/* args */)
 {
+    fairyname="Squirrel";
     type=0;
     stage=1;
     experience=0;
@@ -168,6 +160,7 @@ void Squirrel::hurted(int power){
 
 Kay::Kay(/* args */)
 {
+    fairyname="Kay";
     type=1;
     stage=1;
     experience=0;
@@ -203,6 +196,7 @@ void Kay::hurted(int power){
 
 Beenle::Beenle(/* args */)
 {
+    fairyname="Beenle";
     type=2;
     stage=1;
     experience=0;

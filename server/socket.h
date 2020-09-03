@@ -5,14 +5,21 @@ class myTcpSocket:public QObject
 {
     Q_OBJECT
 public:
+    QString* username;
+public:
     myTcpSocket(QTcpSocket*);
     QTcpSocket* qtcpsocket;
+    void send(QJsonObject*);
 public slots:
     void preProcessRecvData();
-    void sendInfo(int);
-signals:
-    void getSignInBag(QJsonObject*);
-    void getSignUpBag(QJsonObject*);
-    void getSignOutBag(QJsonObject*);
+    void preProcessDisconnect();
 
+signals:
+    void getSignInBag(QJsonObject*,qintptr);
+    void getSignUpBag(QJsonObject*,qintptr);
+    void getSignOutBag(QString*);
+    void clientDisconnect(QString*);
+    void getUserFairiesReq(QString*,qintptr);
+    void getUserReq(QString*,int,qintptr);
+    void getBattleFairiesReqBag(QString*,qintptr);
 };

@@ -28,12 +28,14 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     server.cpp \
-    socket.cpp
+    socket.cpp \
+    fairy.cpp
 
 HEADERS += \
         mainwindow.h \
     server.h \
-    socket.h
+    socket.h \
+    fairy.h
 
 FORMS += \
         mainwindow.ui
