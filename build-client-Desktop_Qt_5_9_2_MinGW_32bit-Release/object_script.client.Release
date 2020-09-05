@@ -1,0 +1,17 @@
+INPUT(
+./release\client.o
+./release\fairy.o
+./release\main.o
+./release\signinform.o
+./release\signUpForm.o
+./release\userForm.o
+./release\battlefieldform.o
+./release\selectopponentform.o
+./release\qrc_fairyfig.o
+./release\moc_client.o
+./release\moc_signinform.o
+./release\moc_signUpForm.o
+./release\moc_userForm.o
+./release\moc_battlefieldform.o
+./release\moc_selectopponentform.o
+);

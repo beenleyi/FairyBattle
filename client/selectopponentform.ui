@@ -14,10 +14,10 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="2" column="0">
-    <widget class="QPushButton" name="upgradeBattle_pushButton">
+   <item row="1" column="0">
+    <widget class="QPushButton" name="winloseBattle_pushButton">
      <property name="text">
-      <string>Upgrade Battle</string>
+      <string>Win-lose Battle</string>
      </property>
     </widget>
    </item>
@@ -65,10 +65,17 @@
      </item>
     </layout>
    </item>
-   <item row="1" column="0">
-    <widget class="QPushButton" name="winLoseBattle_pushButton">
+   <item row="2" column="0">
+    <widget class="QPushButton" name="upgradeBattle_pushButton">
      <property name="text">
-      <string>Win-lose Battle</string>
+      <string>Upgrade Battle</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QPushButton" name="return_pushButton">
+     <property name="text">
+      <string>return</string>
      </property>
     </widget>
    </item>

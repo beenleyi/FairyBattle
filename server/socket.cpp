@@ -2,7 +2,7 @@
 
 myTcpSocket::myTcpSocket(QTcpSocket* tempsocket){
     qtcpsocket=tempsocket;
-    username=NULL;
+    username=new QString;
 }
 
 void myTcpSocket::preProcessRecvData(){
@@ -12,6 +12,7 @@ void myTcpSocket::preProcessRecvData(){
     int event=recvdata->value("event").toInt();
     switch (event) {
     case 0:
+        delete username;
         username=new QString;
         *username=recvdata->value("username").toString();
         emit getSignInBag(recvdata,this->qtcpsocket->socketDescriptor());
@@ -25,7 +26,6 @@ void myTcpSocket::preProcessRecvData(){
         qDebug()<<"get sign out bag:";
         qDebug()<<*username;
         emit getSignOutBag(username);
-        delete username;
         break;
     case 3:
         qDebug()<<"get my fairy req bag";
@@ -43,12 +43,20 @@ void myTcpSocket::preProcessRecvData(){
         qDebug()<<"get server fairies req bag";
         emit getBattleFairiesReqBag(username,this->qtcpsocket->socketDescriptor());
         break;
+    case 7:
+        qDebug()<<"get battle end bag";
+        emit getBattleEndBag(recvdata,username,this->qtcpsocket->socketDescriptor());
+        break;
+    case 8:
+        qDebug()<<"get lose a fairy bag";
+        emit getLoseAFairyBag(recvdata,username);
+        break;
     }
 
 }
 
 void myTcpSocket::send(QJsonObject* data){
-    qDebug()<<"this socket is"<<this->qtcpsocket->socketDescriptor();
+    qDebug()<<*data;
     qtcpsocket->write(QJsonDocument(*data).toJson());
     delete data;
 }

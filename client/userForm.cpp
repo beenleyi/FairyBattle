@@ -14,7 +14,7 @@ userForm::userForm(QWidget *parent) :
     ui->fairy_tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->fairy_tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->fairy_tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-    fairyRows=9;
+    fairyRows=8;
     userRows=11;
 }
 
@@ -50,7 +50,7 @@ void userForm::AddMyFairiesTable(QJsonObject* fairyObj){
     ui->fairy_tableWidget->setRowCount(0);
     ui->fairy_tableWidget->setColumnCount(fairyRows);
     QStringList header;
-    header<<"Fairy Fig"<<"Fairy Name"<<"type"<<"stage"<<"experience"<<"aggressivity"<<"defense"<<"life"<<"attack_interval";
+    header<<"Fairy"<<"type"<<"stage"<<"experience"<<"aggressivity"<<"defense"<<"life"<<"attack_interval";
     ui->fairy_tableWidget->setHorizontalHeaderLabels(header);
     QJsonArray myFairiesArray;
     if(fairyObj->contains("fairiesArray")){
@@ -71,22 +71,27 @@ void userForm::AddMyFairiesTable(QJsonObject* fairyObj){
         defense=myFairiesArray.at(i).toObject().value("defense").toInt();
         life=myFairiesArray.at(i).toObject().value("life").toInt();
         attack_interval=myFairiesArray.at(i).toObject().value("attack_interval").toInt();
-        QString nameDisplay;
         QString tempStr=QString("_%1").arg(index);
-        nameDisplay=fairyname.append(tempStr);
         int rowcount=ui->fairy_tableWidget->rowCount();
-        QTableWidgetItem *itemFig=new QTableWidgetItem(QIcon(QString(":/fig/'%1'.jpg").arg((fairyname))),nameDisplay);
+        QTableWidgetItem *itemFig=new QTableWidgetItem(QIcon(QString(":/fig/%1.png").arg((fairyname))),fairyname.append(tempStr));
         ui->fairy_tableWidget->insertRow(rowcount);
         ui->fairy_tableWidget->setItem(rowcount,0,itemFig);
-        ui->fairy_tableWidget->setItem(rowcount,1,new QTableWidgetItem(nameDisplay));
-        ui->fairy_tableWidget->setItem(rowcount,2,new QTableWidgetItem(QString("%1").arg(type)));
-        ui->fairy_tableWidget->setItem(rowcount,3,new QTableWidgetItem(QString("%1").arg(stage)));
-        ui->fairy_tableWidget->setItem(rowcount,4,new QTableWidgetItem(QString("%1").arg(experience)));
-        ui->fairy_tableWidget->setItem(rowcount,5,new QTableWidgetItem(QString("%1").arg(aggressivity)));
-        ui->fairy_tableWidget->setItem(rowcount,6,new QTableWidgetItem(QString("%1").arg(defense)));
-        ui->fairy_tableWidget->setItem(rowcount,7,new QTableWidgetItem(QString("%1").arg(life)));
-        ui->fairy_tableWidget->setItem(rowcount,8,new QTableWidgetItem(QString("%1").arg(attack_interval)));
+        ui->fairy_tableWidget->setItem(rowcount,1,new QTableWidgetItem(QString("%1").arg(type)));
+        ui->fairy_tableWidget->setItem(rowcount,2,new QTableWidgetItem(QString("%1").arg(stage)));
+        ui->fairy_tableWidget->setItem(rowcount,3,new QTableWidgetItem(QString("%1").arg(experience)));
+        ui->fairy_tableWidget->setItem(rowcount,4,new QTableWidgetItem(QString("%1").arg(aggressivity)));
+        ui->fairy_tableWidget->setItem(rowcount,5,new QTableWidgetItem(QString("%1").arg(defense)));
+        ui->fairy_tableWidget->setItem(rowcount,6,new QTableWidgetItem(QString("%1").arg(life)));
+        ui->fairy_tableWidget->setItem(rowcount,7,new QTableWidgetItem(QString("%1").arg(attack_interval)));
     }
+    int numBadge, stageBadge;
+    numBadge=fairyObj->value("numBadge").toInt();
+    stageBadge=fairyObj->value("stageBadge").toInt();
+    QImage img;
+    img.load(QString(":/fig/NumBadge%1.png").arg(numBadge));
+    ui->NumBadge_label->setPixmap(QPixmap::fromImage(img));
+    img.load(QString(":/fig/StageBadge%1.png").arg(stageBadge));
+    ui->StageBadge_label->setPixmap(QPixmap::fromImage(img));
 }
 
 void userForm::showUserBag(QJsonObject *userBag){
@@ -94,7 +99,7 @@ void userForm::showUserBag(QJsonObject *userBag){
     ui->fairy_tableWidget->setRowCount(0);
     ui->fairy_tableWidget->clear();
     QStringList header;
-    header<<"username"<<"Faye"<<"Hebe"<<"Lala"<<"Squirrel"<<"Kay"<<"Beenle"<<"Win Rate"<<"FairiesNumBadge"<<"FairiesStageBadge"<<"online";
+    header<<"username"<<"Faye"<<"Hebe"<<"Lala"<<"Squirrel"<<"Kay"<<"Beenle"<<"Win Rate"<<"NumBadge"<<"StageBadge"<<"online";
     ui->fairy_tableWidget->setHorizontalHeaderLabels(header);
     int reqOnlineOrNot=userBag->value("reqOnlineOrNot").toInt();
     if(reqOnlineOrNot) ui->tableTitle->setText("Online Users");
@@ -110,6 +115,11 @@ void userForm::showUserBag(QJsonObject *userBag){
     for(int i=0;i<userNum;i++){
         int rowcount=ui->fairy_tableWidget->rowCount();
         ui->fairy_tableWidget->insertRow(rowcount);
+        int numBadge, stageBadge;
+        numBadge=userArray.at(i).toObject().value("FairiesNumBadge").toInt();
+        stageBadge=userArray.at(i).toObject().value("FairiesStageBadge").toInt();
+        ui->fairy_tableWidget->setItem(rowcount,8,new QTableWidgetItem(QIcon(QString(":/fig/NumBadge%1.png").arg(numBadge)),""));
+        ui->fairy_tableWidget->setItem(rowcount,9,new QTableWidgetItem(QIcon(QString(":/fig/StageBadge%1.png").arg(stageBadge)),""));
         ui->fairy_tableWidget->setItem(rowcount,0,new QTableWidgetItem(userArray.at(i).toObject().value("username").toString()));
         ui->fairy_tableWidget->setItem(rowcount,1,new QTableWidgetItem(QString("%1").arg(userArray.at(i).toObject().value("FayeNum").toInt())));
         ui->fairy_tableWidget->setItem(rowcount,2,new QTableWidgetItem(QString("%1").arg(userArray.at(i).toObject().value("HebeNum").toInt())));
@@ -118,9 +128,7 @@ void userForm::showUserBag(QJsonObject *userBag){
         ui->fairy_tableWidget->setItem(rowcount,5,new QTableWidgetItem(QString("%1").arg(userArray.at(i).toObject().value("KayNum").toInt())));
         ui->fairy_tableWidget->setItem(rowcount,6,new QTableWidgetItem(QString("%1").arg(userArray.at(i).toObject().value("BeenleNum").toInt())));
         ui->fairy_tableWidget->setItem(rowcount,7,new QTableWidgetItem(QString("%1").arg(userArray.at(i).toObject().value("Win Rate").toDouble())));
-        ui->fairy_tableWidget->setItem(rowcount,8,new QTableWidgetItem(QString("%1").arg(userArray.at(i).toObject().value("FairiesNumBadge").toInt())));
-        ui->fairy_tableWidget->setItem(rowcount,9,new QTableWidgetItem(QString("%1").arg(userArray.at(i).toObject().value("FairiesStageBadge").toInt())));
-        ui->fairy_tableWidget->setItem(rowcount,10,new QTableWidgetItem(QString("%1").arg(userArray.at(i).toObject().value("online").toBool())));
+        ui->fairy_tableWidget->setItem(rowcount,10,new QTableWidgetItem(QString("%1").arg(userArray.at(i).toObject().value("online").toInt())));
     }
 }
 
@@ -209,3 +217,5 @@ void userForm::on_battle_pushButton_clicked(){
 //    }
     emit gotoSelectOpponent();
 }
+
+

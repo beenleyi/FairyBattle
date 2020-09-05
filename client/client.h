@@ -40,7 +40,8 @@ private slots:
     void getFairies();
     void toSelectOpponent();
     void showBattlefield(int,QJsonObject*,QJsonObject*);
-
+    void showUserForm();
+    void sendBattleEndBag(int, int, int, int, QString*, QString*);
 signals:
     void signUp_usernameExisted();
     void signUp_signUpSecceed();
@@ -50,6 +51,7 @@ signals:
     void getMyFairy(QJsonObject*);
     void getUserBag(QJsonObject*);
     void getBattleFairiesBag(QJsonObject*);
+    void getBattleEndResBag(QJsonObject*);
 };
 
 #endif // CLIENT_H

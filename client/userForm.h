@@ -37,6 +37,7 @@ signals:
     void sendMessageReq(QJsonObject*);
     void needMyFairies();
     void gotoSelectOpponent();
+
 };
 
 #endif // userForm_H

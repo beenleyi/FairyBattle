@@ -15,6 +15,7 @@ int client::connectToHost(){
     mySignUpForm=new signUpForm();
     mySelectOpponentForm=new selectOpponentForm();
     myBattlefieldForm=new battlefieldForm();
+    username=new QString();
     if(connected){
         mySignInForm->show();
         connect(mysocket,SIGNAL(readyRead()),this,SLOT(preProcessRecvData()));
@@ -33,6 +34,11 @@ int client::connectToHost(){
         connect(myUserForm,SIGNAL(gotoSelectOpponent()),this,SLOT(toSelectOpponent()));
         connect(this,SIGNAL(getBattleFairiesBag(QJsonObject*)),mySelectOpponentForm,SLOT(showBattleFairy(QJsonObject*)));
         connect(mySelectOpponentForm,SIGNAL(gotoBattlefield(int,QJsonObject*,QJsonObject*)),this,SLOT(showBattlefield(int,QJsonObject*,QJsonObject*)));
+        connect(myBattlefieldForm,SIGNAL(battleEnd(int,int,int,int,QString*,QString*)),this,SLOT(sendBattleEndBag(int, int, int, int, QString*, QString*)));
+        connect(this,SIGNAL(getBattleEndResBag(QJsonObject*)),myBattlefieldForm,SLOT(showBattleRes(QJsonObject*)));
+        connect(myBattlefieldForm,SIGNAL(sendLoseAFairyBag(QJsonObject*)),this,SLOT(sendMessage(QJsonObject*)));
+        connect(myBattlefieldForm,SIGNAL(showUserFormReq()),this,SLOT(showUserForm()));
+        connect(mySelectOpponentForm,SIGNAL(showUserFormReq()),this,SLOT(showUserForm()));
         return 1;
     }else{
         QMessageBox messageBox(QMessageBox::NoIcon,
@@ -53,6 +59,7 @@ int client::connectToHost(){
 }
 
 void client::sendMessage(QJsonObject *sendBag){
+    qDebug()<<*sendBag;
     mysocket->write(QJsonDocument(*sendBag).toJson());
     mysocket->waitForBytesWritten();
     delete sendBag;
@@ -60,32 +67,27 @@ void client::sendMessage(QJsonObject *sendBag){
 
 void client::preProcessRecvData(){
     QByteArray bytearray=this->mysocket->readAll();
-    QString str(bytearray);
-    qDebug()<<str;
     QJsonObject *recvdata;
     recvdata=new QJsonObject;
     int event=-1;
     QJsonParseError jsonError;
     QJsonDocument parseDocument=QJsonDocument::fromJson(bytearray,&jsonError);
-    qDebug()<<jsonError.error;
+    //qDebug()<<jsonError.error;
 
     if(jsonError.error==QJsonParseError::NoError){
         if(parseDocument.isObject()){
             *recvdata=parseDocument.object();
-            qDebug()<<"the bag has no error.";
             if(recvdata->contains("event")){
-                qDebug()<<"the bag has event";
                 QJsonValue event_value=recvdata->take("event");
                 if(event_value.isDouble())event=event_value.toInt();
             }
         }
     }
-    qDebug()<<"get "<<event<<"bag";
-
     QString tempUsername;
     switch (event) {
     case 0:
-        int info;
+    {
+        int info=-1;
         if(recvdata->contains("infoType")){
             QJsonValue infoType=recvdata->take("infoType");
             if(infoType.isDouble()) info=infoType.toInt();
@@ -101,6 +103,7 @@ void client::preProcessRecvData(){
             break;
         case 2:
             getFairies();
+            delete this->username;
             this->username=mySignInForm->getUserName();
             myUserForm->setUsername(username);
             myUserForm->show();
@@ -114,6 +117,7 @@ void client::preProcessRecvData(){
             break;
         }
         break;
+    }
     case 1:
         qDebug()<<"get fairies bag";
         tempUsername=recvdata->value("username").toString();
@@ -128,6 +132,10 @@ void client::preProcessRecvData(){
     case 3:
         qDebug()<<"get server fairies name bag";
         emit getBattleFairiesBag(recvdata);
+        break;
+    case 4:
+        qDebug()<<"get server battle end bag";
+        emit getBattleEndResBag(recvdata);
         break;
     }
 
@@ -170,4 +178,28 @@ void client::showBattlefield(int type,QJsonObject* myBattleFairy,QJsonObject* op
     myBattlefieldForm->setBattlefieldForm(type,myBattleFairy,opponentFairy);
     myBattlefieldForm->show();
     mySelectOpponentForm->hide();
+}
+
+void client::sendBattleEndBag(int battleType, int winOrLose, int countAttack, int countHurt, QString *myfairy, QString *opponent){
+    QJsonObject *battleEndBag;
+    battleEndBag=new QJsonObject;
+    *battleEndBag={
+        {"event",7},
+        {"battleType", battleType},
+        {"winOrLose",winOrLose},
+        {"countAttack",countAttack},
+        {"countHurt",countHurt},
+        {"myFairyName",*myfairy},
+        {"opponentName",*opponent}
+    };
+    sendMessage(battleEndBag);
+//    delete myfairy;
+//    delete opponent;
+}
+
+void client::showUserForm(){
+    getFairies();
+    myBattlefieldForm->hide();
+    mySelectOpponentForm->hide();
+    myUserForm->show();
 }

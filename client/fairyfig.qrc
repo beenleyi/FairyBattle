@@ -9,5 +9,13 @@
         <file>fig/Kay.png</file>
         <file>fig/Lala.png</file>
         <file>fig/Squirrel.png</file>
+        <file>fig/NumBadge0.png</file>
+        <file>fig/NumBadge1.png</file>
+        <file>fig/NumBadge2.png</file>
+        <file>fig/NumBadge3.png</file>
+        <file>fig/StageBadge0.png</file>
+        <file>fig/StageBadge1.png</file>
+        <file>fig/StageBadge2.png</file>
+        <file>fig/StageBadge3.png</file>
     </qresource>
 </RCC>

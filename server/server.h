@@ -11,6 +11,7 @@
 #include <fairy.h>
 #include <QDebug>
 #include <QJsonArray>
+#include <QJsonValue>
 const int DISTRIBUTE_NUM=3;
 const int FAIRY_TYPE_NUM=6;
 class myTcpServer:public QTcpServer{
@@ -29,8 +30,8 @@ private:
     QString userName;
     QString password;
     QSqlDatabase dbconn;
-    void distributeFairiesRandomly(QString*);
-    void insertFairy(fairy*);
+    void distributeFairiesRandomly(QString*,int);
+    void insertFairy(QString*,fairy*);
     QList<int>* getUserFairiesTypeNum(QString*);
     fairy* getUserAFairy(QString*, QString*, int);
     QString* getFairyName(int);
@@ -41,6 +42,13 @@ private:
     myTcpSocket* getSocket(qintptr socketDescriptor);
     QJsonArray* getServerFairiesArray();
     QJsonArray* getUserFairiesArray(QString *tempUserName);
+    int updateMyFairy(QString*, QString*, int, int, int);
+    void winAServerFairy(QString*, QString*);
+    QJsonArray* choose3FairiesRandomly(QString*);
+    void updateSQL(QString*, fairy*, int);
+    fairy* newAFairy(int index);
+    void updateWinRate(QString*, int);
+    void updateBadge();
 private slots:
     void processDisconnect(QString*);
     void processSignInBag(QJsonObject*,qintptr);
@@ -49,4 +57,6 @@ private slots:
     void processUserFairiesReq(QString*,qintptr);
     void processUserReq(QString*,int,qintptr);
     void processBattleFairiesReq(QString*,qintptr);
+    void processBattleEnd(QJsonObject*,QString*,qintptr);
+    void processLoseAFairy(QJsonObject*, QString*);
 };

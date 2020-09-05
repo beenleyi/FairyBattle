@@ -54,14 +54,14 @@
         </layout>
        </item>
        <item>
-        <widget class="QLabel" name="label_2">
+        <widget class="QLabel" name="NumBadge_label">
          <property name="text">
           <string>textlabel</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label_4">
+        <widget class="QLabel" name="StageBadge_label">
          <property name="text">
           <string>TextLabel</string>
          </property>

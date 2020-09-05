@@ -82,9 +82,9 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="myblood_label">
-             <property name="text">
-              <string>TextLabel</string>
+            <widget class="QProgressBar" name="myBlood_progressBar">
+             <property name="value">
+              <number>24</number>
              </property>
             </widget>
            </item>
@@ -105,6 +105,19 @@
           </widget>
          </item>
         </layout>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>10</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -154,9 +167,9 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="opponentBlood_label">
-             <property name="text">
-              <string>TextLabel</string>
+            <widget class="QProgressBar" name="opponentBlood_progressBar">
+             <property name="value">
+              <number>24</number>
              </property>
             </widget>
            </item>
@@ -184,6 +197,13 @@
       <widget class="QPushButton" name="start_pushButton">
        <property name="text">
         <string>Start to battle</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="return_pushButton">
+       <property name="text">
+        <string>return</string>
        </property>
       </widget>
      </item>

@@ -1,0 +1,17 @@
+INPUT(
+./debug\client.o
+./debug\fairy.o
+./debug\main.o
+./debug\signinform.o
+./debug\signUpForm.o
+./debug\userForm.o
+./debug\battlefieldform.o
+./debug\selectopponentform.o
+./debug\qrc_fairyfig.o
+./debug\moc_client.o
+./debug\moc_signinform.o
+./debug\moc_signUpForm.o
+./debug\moc_userForm.o
+./debug\moc_battlefieldform.o
+./debug\moc_selectopponentform.o
+);

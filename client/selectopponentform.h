@@ -24,9 +24,11 @@ private slots:
     void on_userFairies_comboBox_currentIndexChanged(const QString &arg1);
     void on_serverFairies_comboBox_currentIndexChanged(const QString &arg1);
     void on_upgradeBattle_pushButton_clicked();
-    void on_winLoseBattle_pushButton_clicked();
+    void on_winloseBattle_pushButton_clicked();
+    void on_return_pushButton_clicked();
 signals:
     void gotoBattlefield(int,QJsonObject*,QJsonObject*);
+    void showUserFormReq();
 };
 
 #endif // SELECTOPPONENTFORM_H

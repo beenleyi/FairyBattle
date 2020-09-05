@@ -1,8 +1,13 @@
 #include <QString>
 /**********fairy************/
-class fairy
+#include <QDebug>
+#include <QWidget>
+#include "battlefieldform.h"
+class fairy:public QWidget
 {
-public:
+
+
+protected:
     /******
      * type
      * 0:powerful
@@ -10,7 +15,7 @@ public:
      * 2:high defense
      * 3:sharp
      *****/
-    QString username;
+    //QString username;
     QString fairyname;
     int type;
     int stage;//0-15
@@ -20,90 +25,123 @@ public:
     int life;//0-
     int attack_interval;//0-10s
 public:
-    fairy(/* args */);
+    fairy(int,int,int,int,int,int,int);
     ~fairy();
     virtual void upgrade()=0;
     void check_attribute();
-    virtual void attack(fairy* pfairy)=0;
+    virtual void attack(fairy*,int)=0;
     virtual void hurted(int power)=0;
+    friend class battlefieldForm;
+
+
 };
 
 
 /**********Faye************/
 class Faye:public fairy
 {
+    //
+
 private:
     /* data */
 public:
-    Faye(/* args */);
+    Faye(int,int,int,int,int,int,int);
     ~Faye();
     virtual void upgrade();
-    virtual void attack(fairy* pfairy);
+    virtual void attack(fairy* , int);
     virtual void hurted(int power);
+    friend class battlefieldForm;
+
+
 };
 
 /**********Hebe************/
 class Hebe:public fairy
 {
+    //
+
 private:
     /* data */
 public:
-    Hebe(/* args */);
+    Hebe(int,int,int,int,int,int,int);
     ~Hebe();
     virtual void upgrade();
-    virtual void attack(fairy* pfairy);
+    virtual void attack(fairy* , int);
     virtual void hurted(int power);
+    friend class battlefieldForm;
+
+
 };
 
 /**********Lala************/
 class Lala:public fairy
 {
+    //
+
 private:
     /* data */
 public:
-    Lala(/* args */);
+    Lala(int,int,int,int,int,int,int);
     ~Lala();
     virtual void upgrade();
-    virtual void attack(fairy* pfairy);
+    virtual void attack(fairy* , int);
     virtual void hurted(int power);
+    friend class battlefieldForm;
+
+
 };
 
 /**********Squirrel************/
 class Squirrel:public fairy
 {
+    //
+
 private:
     /* data */
 public:
-    Squirrel(/* args */);
+    Squirrel(int,int,int,int,int,int,int);
     ~Squirrel();
     virtual void upgrade();
-    virtual void attack(fairy* pfairy);
+    virtual void attack(fairy* , int);
     virtual void hurted(int power);
+    friend class battlefieldForm;
+
+
 };
 
 
 /**********Kay************/
 class Kay:public fairy
 {
+    //
+
 private:
     /* data */
 public:
-    Kay(/* args */);
+    Kay(int,int,int,int,int,int,int);
     ~Kay();
     virtual void upgrade();
-    virtual void attack(fairy* pfairy);
-    virtual void hurted(int power);
+    virtual void attack(fairy*, int);
+    virtual void hurted(int);
+    friend class battlefieldForm;
+
+
 };
 
 /**********Beenle************/
 class Beenle:public fairy
 {
+    //
+
 private:
     /* data */
 public:
-    Beenle(/* args */);
+    Beenle(int,int,int,int,int,int,int);
     ~Beenle();
     virtual void upgrade();
-    virtual void attack(fairy* pfairy);
+    virtual void attack(fairy* , int);
     virtual void hurted(int power);
+    friend class battlefieldForm;
+
+
 };

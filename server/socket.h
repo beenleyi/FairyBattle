@@ -22,4 +22,6 @@ signals:
     void getUserFairiesReq(QString*,qintptr);
     void getUserReq(QString*,int,qintptr);
     void getBattleFairiesReqBag(QString*,qintptr);
+    void getBattleEndBag(QJsonObject*,QString*,qintptr);
+    void getLoseAFairyBag(QJsonObject*, QString*);
 };

@@ -89,6 +89,8 @@ void myTcpServer::incomingConnection(int socketDescriptor){
     connect(mysocket,SIGNAL(getUserFairiesReq(QString*, qintptr)),this,SLOT(processUserFairiesReq(QString*, qintptr)));
     connect(mysocket,SIGNAL(getUserReq(QString*, int, qintptr)),this,SLOT(processUserReq(QString*, int, qintptr)));
     connect(mysocket,SIGNAL(getBattleFairiesReqBag(QString*,qintptr)),this,SLOT(processBattleFairiesReq(QString*,qintptr)));
+    connect(mysocket,SIGNAL(getBattleEndBag(QJsonObject*,QString*,qintptr)),this,SLOT(processBattleEnd(QJsonObject*,QString*,qintptr)));
+    connect(mysocket,SIGNAL(getLoseAFairyBag(QJsonObject*,QString*)),this,SLOT(processLoseAFairy(QJsonObject*,QString*)));
     tcpSocketConnectedList.append(mysocket);
 }
 
@@ -148,12 +150,12 @@ void myTcpServer::processSignUpBag(QJsonObject* signUpBag,qintptr socketDescript
                          ('%1','%2',0,0,0,0,0,0,0,0,0,0,0);").arg(*tempUsername).arg(signUpBag->value("password").toString());
         query.exec(queryStr);
         QSqlError error = dbconn.lastError();
-        qDebug()<<error.text();
-        distributeFairiesRandomly(tempUsername);
+        distributeFairiesRandomly(tempUsername,DISTRIBUTE_NUM);
         //sign up secceed
         sendInfoPre(1,socketDescriptor);
     }
     delete signUpBag;
+    delete tempUsername;
 }
 
 void myTcpServer::processSignOutBag(QString* tempUserName){
@@ -161,8 +163,6 @@ void myTcpServer::processSignOutBag(QString* tempUserName){
     QSqlQuery updateQuery;
     QString queryStr=QString("UPDATE user SET online = 0 where username='%1'").arg(*tempUserName);
     updateQuery.exec(queryStr);
-    QSqlError error = dbconn.lastError();
-    qDebug()<<error.text();
     return;
 }
 
@@ -173,7 +173,7 @@ myTcpServer::~myTcpServer(){
 }
 
 /*成功注册后，随机分配精灵，并添加到数据表中*/
-void myTcpServer::distributeFairiesRandomly(QString* tempUsername){
+void myTcpServer::distributeFairiesRandomly(QString* tempUsername, int num){
     srand(time(NULL));
     int fairyIndex;
     fairy* tempfairy;
@@ -181,49 +181,17 @@ void myTcpServer::distributeFairiesRandomly(QString* tempUsername){
     QString queryStr=QString("SELECT * FROM user where username='%1'").arg(*tempUsername);
     query.exec(queryStr);
     if(query.next()){
-        for(int i=0;i<DISTRIBUTE_NUM;i++){
+        for(int i=0;i<num;i++){
             fairyIndex=rand()%FAIRY_TYPE_NUM;
-            qDebug()<<i<<":"<<fairyIndex<<endl;
-            switch (fairyIndex) {
-            case 0:
-                Faye* tempFaye;
-                tempFaye=new Faye;
-                tempfairy=tempFaye;
-                break;
-            case 1:
-                Hebe* tempHebe;
-                tempHebe=new Hebe;
-                tempfairy=tempHebe;
-                break;
-            case 2:
-                Lala* tempLala;
-                tempLala=new Lala;
-                tempfairy=tempLala;
-                break;
-            case 3:
-                Squirrel* tempSquirrel;
-                tempSquirrel=new Squirrel;
-                tempfairy=tempSquirrel;
-                break;
-            case 4:
-                Kay* tempKay;
-                tempKay=new Kay;
-                tempfairy=tempKay;
-                break;
-            case 5:
-                Beenle* tempBeenle;
-                tempBeenle=new Beenle;
-                tempfairy=tempBeenle;
-                break;
-            }
-            tempfairy->username=*tempUsername;
-            insertFairy(tempfairy);
+            tempfairy=newAFairy(fairyIndex);
+            insertFairy(tempUsername,tempfairy);
         }
     }
 }
 
 /*客户端发起获取其所有精灵的请求，进行处理，将一个一个精灵返回给客户端，同种精灵有index编号*/
 void myTcpServer::processUserFairiesReq(QString* tempUsername,qintptr socketDescriptor){
+    updateBadge();
     QJsonObject* userFairiesBag;
     QJsonArray* tempFairyArray;
     userFairiesBag=new QJsonObject;
@@ -231,6 +199,14 @@ void myTcpServer::processUserFairiesReq(QString* tempUsername,qintptr socketDesc
     userFairiesBag->insert("username",*tempUsername);
     tempFairyArray=getUserFairiesArray(tempUsername);
     userFairiesBag->insert("fairiesArray",QJsonValue(*tempFairyArray));
+    QSqlQuery query;
+    QString queryStr;
+    queryStr=QString("SELECT FairiesNumBadge,FairiesStageBadge FROM user WHERE username='%1'").arg(*tempUsername);
+    query.exec(queryStr);
+    if(query.next()){
+        userFairiesBag->insert("numBadge",query.value(0).toInt());
+        userFairiesBag->insert("stageBadge",query.value(1).toInt());
+    }
     myTcpSocket* theSocket=getSocket(socketDescriptor);
     theSocket->send(userFairiesBag);
     delete tempFairyArray;
@@ -276,15 +252,11 @@ QJsonArray* myTcpServer::getUserFairiesArray(QString *tempUserName){
 }
 
 /*插入精灵到数据表中，参数是一个精灵，其包含用户名和精灵等所有信息*/
-void myTcpServer::insertFairy(fairy *tempfairy){
+void myTcpServer::insertFairy(QString* tempUserName,fairy *tempfairy){
     if(tempfairy==NULL) return;
-    qDebug()<<tempfairy->fairyname<<tempfairy->username;
     QString *tempFairyName;
     tempFairyName=new QString;
     *tempFairyName=tempfairy->fairyname;
-    QString *tempUserName;
-    tempUserName=new QString;
-    *tempUserName=tempfairy->username;
     QList<int>* typeNumList;
     typeNumList=getUserFairiesTypeNum(tempUserName);
     int index;
@@ -293,11 +265,10 @@ void myTcpServer::insertFairy(fairy *tempfairy){
     QString queryStr;
     queryStr=QString("INSERT INTO fairies \
                      VALUES\
-                     ('%1','%2',%3,%4,%5,%6,%7,%8,%9,%10);").arg(tempfairy->username).arg(tempfairy->fairyname).arg(index).arg(tempfairy->type).\
+                     ('%1','%2',%3,%4,%5,%6,%7,%8,%9,%10);").arg(*tempUserName).arg(tempfairy->fairyname).arg(index).arg(tempfairy->type).\
                           arg(tempfairy->stage).arg(tempfairy->experience).arg(tempfairy->aggressivity).\
                           arg(tempfairy->defense).arg(tempfairy->life).arg(tempfairy->attack_interval);
     insertQuery.exec(queryStr);
-    qDebug()<<queryStr;
     addFairyNum(tempUserName,tempFairyName,1);
     delete typeNumList;
     delete tempfairy;
@@ -327,10 +298,8 @@ fairy* myTcpServer::getUserAFairy(QString* tempUserName, QString *tempFairyName,
     foundFairy=NULL;
     queryStr=QString("SELECT * FROM fairies where username='%1' AND fairyname='%2' AND no=%3 ").arg(*tempUserName).arg(*tempFairyName).arg(index);
     query.exec(queryStr);
-    qDebug()<<queryStr;
     if(query.next()){
-        foundFairy=new fairy;
-        foundFairy->username=*tempUserName;
+        foundFairy=newAFairy(index);
         foundFairy->fairyname=*tempFairyName;
         foundFairy->type=query.value("type").toInt();
         foundFairy->stage=query.value("stage").toInt();
@@ -339,8 +308,9 @@ fairy* myTcpServer::getUserAFairy(QString* tempUserName, QString *tempFairyName,
         foundFairy->defense=query.value("defense").toInt();
         foundFairy->life=query.value("life").toInt();
         foundFairy->attack_interval=query.value("attack_interval").toInt();
-    }
-    return foundFairy;
+        return foundFairy;
+    }else return NULL;
+
 }
 
 /*小工具函数：用精灵编号可以得到精灵名称，六种精灵按定义顺序编号，注意此处index不是同种精灵编号*/
@@ -370,25 +340,6 @@ QString* myTcpServer::getFairyName(int index){
     return tempString;
 }
 
-///*发送精灵的详细信息，参数是同种精灵编号和精灵*/
-//void myTcpServer::sendFairyDetail(int index,fairy *tempFairy){
-//    QJsonObject *fairyBag;
-//    fairyBag=new QJsonObject;
-//    qDebug()<<tempFairy->username<<tempFairy->fairyname<<tempFairy->type
-//           <<tempFairy->stage<<tempFairy->experience<<tempFairy->aggressivity<<tempFairy->defense
-//          <<tempFairy->life<<tempFairy->attack_interval;
-//    fairyBag->insert("event",1);
-//    fairyBag->insert("index",index);
-//    fairyBag->insert("type",tempFairy->type);
-//    fairyBag->insert("stage",tempFairy->stage);
-//    fairyBag->insert("experience",tempFairy->experience);
-//    fairyBag->insert("aggressivity",tempFairy->aggressivity);
-//    fairyBag->insert("defense",tempFairy->defense);
-//    fairyBag->insert("life",tempFairy->life);
-//    fairyBag->insert("attack_interval",tempFairy->attack_interval);
-//    qDebug()<<sizeof(fairyBag);
-//    emit sendMessage(fairyBag);
-//}
 
 /*统一发送用户登录，注册，登出等信息*/
 void myTcpServer::sendInfoPre(int infoType, qintptr socketDescriptor){
@@ -422,9 +373,6 @@ void myTcpServer::addFairyNum(QString *tempUserName, QString *tempFairyName, int
     if(query.next()) kindNum=query.value(0).toInt();
     queryStr=QString("UPDATE user SET %1=%2 where username='%3'").arg(findName).arg(kindNum+addNum).arg(*tempUserName);
     query.exec(queryStr);
-    qDebug()<<queryStr;
-    QSqlError error = dbconn.lastError();
-    qDebug()<<error.text();
 }
 
 void myTcpServer::processUserReq(QString* tempUserName, int req, qintptr socketDescriptor){
@@ -462,7 +410,6 @@ void myTcpServer::processUserReq(QString* tempUserName, int req, qintptr socketD
         delete user;
     }
     userBag->insert("userArray",QJsonValue(*userArray));
-    qDebug()<<"start to send userbag";
     myTcpSocket* theSocket=getSocket(socketDescriptor);
     theSocket->send(userBag);
     delete userArray;
@@ -513,4 +460,271 @@ QJsonArray* myTcpServer::getServerFairiesArray(){
         delete onefairy;
     }
     return fairiesArray;
+}
+
+void myTcpServer::processBattleEnd(QJsonObject *recvdata, QString *tempUserName, qintptr socketDescriptor){
+    int battleType=recvdata->value("battleType").toInt();
+    int winOrLose=recvdata->value("winOrLose").toInt();
+    QString* opponent=new QString;
+    QString* myFairyName=new QString;
+    *opponent=recvdata->value("opponentName").toString();
+    qDebug()<<*opponent;
+    *myFairyName=recvdata->value("myFairyName").toString();
+    qDebug()<<*tempUserName<<"processBattleEnd";
+    QJsonObject* battleResultBag=new QJsonObject;
+    *battleResultBag={
+        {"event",4}
+    };
+    if(battleType==1){
+        //winLoseGame
+        if(winOrLose){
+            //win, user can get the fairy
+            winAServerFairy(tempUserName,opponent);
+        }
+        else{
+            //lose a fairy
+            QJsonArray* mayGiveFairiesArray=new QJsonArray;
+            mayGiveFairiesArray=choose3FairiesRandomly(tempUserName);
+            battleResultBag->insert("mayGiveFairiesArray",*mayGiveFairiesArray);
+        }
+    }
+    int updateRes=updateMyFairy(tempUserName,myFairyName,winOrLose,recvdata->value("countAttack").toInt(),recvdata->value("countHurt").toInt());
+    battleResultBag->insert("updateRes",updateRes);
+    myTcpSocket* theSocket=getSocket(socketDescriptor);
+    theSocket->send(battleResultBag);
+    updateWinRate(tempUserName,winOrLose);
+
+}
+
+int myTcpServer::updateMyFairy(QString* tempUserName, QString *fairyDescriptor, int winOrLose, int countAttack, int countHurt){
+    fairy* myfairy;
+    QString* fairyName=new QString;
+    *fairyName=fairyDescriptor->section('_',0,0);
+    int index=fairyDescriptor->section('_',1,1).toInt();
+    myfairy=getUserAFairy(tempUserName,fairyName,index);
+    if(myfairy!=NULL){
+        int updateRes=myfairy->update(winOrLose,countAttack,countHurt);
+        updateSQL(tempUserName,myfairy,index);
+        delete fairyName;
+        delete myfairy;
+        return updateRes;
+    }
+    else return -1;
+}
+
+void myTcpServer::winAServerFairy(QString *tempUserName, QString *opponentDescriptor){
+    QString* fairyName=new QString;
+    *fairyName=opponentDescriptor->section('_',0,0);
+    int index=opponentDescriptor->section('_',1,1).toInt();
+    QSqlQuery query;
+    QString queryStr;
+    queryStr=QString("SELECT type, stage, experience, aggressivity, defense, life, attack_interval\
+                      FROM serverfairies WHERE fairyname='%1' AND no=%2;").arg(*fairyName).arg(index);
+    query.exec(queryStr);
+    qDebug()<<queryStr;
+    QList<int>* typeNumList;
+    typeNumList=getUserFairiesTypeNum(tempUserName);
+    int k=getFairyIndex(fairyName);
+    index=typeNumList->at(k);
+    qDebug()<<"add"<<*fairyName<<index;
+    if(query.next()){
+        QSqlQuery insertQuery;
+        QString insertQueryStr=QString("INSERT INTO fairies \
+                         VALUES\
+                         ('%1','%2',%3,%4,%5,%6,%7,%8,%9,%10);").arg(*tempUserName).arg(*fairyName).arg(index).arg(query.value(0).toInt())\
+                              .arg(query.value(1).toInt()).arg(query.value(2).toInt()).arg(query.value(3).toInt())\
+                              .arg(query.value(4).toInt()).arg(query.value(5).toInt()).arg(query.value(6).toInt());
+        insertQuery.exec(insertQueryStr);
+        qDebug()<<insertQueryStr;
+    }
+    addFairyNum(tempUserName,fairyName,1);
+}
+
+QJsonArray* myTcpServer::choose3FairiesRandomly(QString *tempUserName){
+    QJsonArray* mayGiveFairiesArray=new QJsonArray;
+    QList<int>* typeNumList;
+    typeNumList=getUserFairiesTypeNum(tempUserName);
+    int totalNum=0,i,j,k;
+    for(i=0;i<FAIRY_TYPE_NUM;i++){
+        totalNum+=typeNumList->at(i);
+    }
+    QList<int> userFairyIndex;
+
+    if(totalNum==1) userFairyIndex.append(0);
+    else if(totalNum==2) {
+        userFairyIndex.append(0);
+        userFairyIndex.append(1);
+    }
+    else if(totalNum==3){
+        userFairyIndex.append(0);
+        userFairyIndex.append(1);
+        userFairyIndex.append(2);
+    }
+    else{
+        srand(time(NULL));
+        for(i=0;i<3;i++){
+            int ran=rand()%totalNum;
+            for(j=0;j<i;j++){
+                while(ran==userFairyIndex.at(j)) ran=rand()%totalNum;
+            }
+            userFairyIndex.append(ran);
+        }
+    }
+
+    for(i=0;i<userFairyIndex.count();i++){
+        qDebug()<<userFairyIndex.at(i);
+        QSqlQuery query;
+        QString queryStr;
+        queryStr=QString("SELECT fairyname, no\
+                          FROM fairies WHERE username='%1';").arg(*tempUserName);
+        qDebug()<<queryStr;
+        query.exec(queryStr);
+        k=0;
+        while(query.next()){
+            if(k==userFairyIndex.at(i)){
+                QJsonObject aFairy;
+                aFairy={
+                   {"fairyname",QString("%1_%2").arg(query.value(0).toString()).arg(query.value(1).toInt())}
+                };
+                mayGiveFairiesArray->append(QJsonValue(aFairy));
+                qDebug()<<aFairy;
+                break;
+            }
+            else ++k;
+        }
+    }
+    delete typeNumList;
+    if(totalNum==1) distributeFairiesRandomly(tempUserName,1);
+    return mayGiveFairiesArray;
+}
+
+void myTcpServer::updateSQL(QString *tempUserName, fairy *myfairy, int index){
+    QSqlQuery query;
+    QString queryStr;
+    queryStr=QString("UPDATE fairies SET %1=%2 where username='%3' AND fairyname='%4' AND no=%5").arg("type").arg(myfairy->type).arg(*tempUserName).arg(myfairy->fairyname).arg(index);
+    query.exec(queryStr);
+    queryStr=QString("UPDATE fairies SET %1=%2 where username='%3' AND fairyname='%4' AND no=%5").arg("stage").arg(myfairy->stage).arg(*tempUserName).arg(myfairy->fairyname).arg(index);
+    query.exec(queryStr);
+    queryStr=QString("UPDATE fairies SET %1=%2 where username='%3' AND fairyname='%4' AND no=%5").arg("experience").arg(myfairy->experience).arg(*tempUserName).arg(myfairy->fairyname).arg(index);
+    query.exec(queryStr);
+    queryStr=QString("UPDATE fairies SET %1=%2 where username='%3' AND fairyname='%4' AND no=%5").arg("aggressivity").arg(myfairy->aggressivity).arg(*tempUserName).arg(myfairy->fairyname).arg(index);
+    query.exec(queryStr);
+    queryStr=QString("UPDATE fairies SET %1=%2 where username='%3' AND fairyname='%4' AND no=%5").arg("life").arg(myfairy->life).arg(*tempUserName).arg(myfairy->fairyname).arg(index);
+    query.exec(queryStr);
+    queryStr=QString("UPDATE fairies SET %1=%2 where username='%3' AND fairyname='%4' AND no=%5").arg("defense").arg(myfairy->defense).arg(*tempUserName).arg(myfairy->fairyname).arg(index);
+    query.exec(queryStr);
+    queryStr=QString("UPDATE fairies SET %1=%2 where username='%3' AND fairyname='%4' AND no=%5").arg("attack_interval").arg(myfairy->attack_interval).arg(*tempUserName).arg(myfairy->fairyname).arg(index);
+    query.exec(queryStr);
+}
+
+fairy* myTcpServer::newAFairy(int index){
+    fairy* tempfairy;
+    switch (index) {
+    case 0:
+        Faye* tempFaye;
+        tempFaye=new Faye();
+        tempfairy=tempFaye;
+        break;
+    case 1:
+        Hebe* tempHebe;
+        tempHebe=new Hebe();
+        tempfairy=tempHebe;
+        break;
+    case 2:
+        Lala* tempLala;
+        tempLala=new Lala();
+        tempfairy=tempLala;
+        break;
+    case 3:
+        Squirrel* tempSquirrel;
+        tempSquirrel=new Squirrel();
+        tempfairy=tempSquirrel;
+        break;
+    case 4:
+        Kay* tempKay;
+        tempKay=new Kay();
+        tempfairy=tempKay;
+        break;
+    case 5:
+        Beenle* tempBeenle;
+        tempBeenle=new Beenle();
+        tempfairy=tempBeenle;
+        break;
+    }
+    return tempfairy;
+}
+
+void myTcpServer::processLoseAFairy(QJsonObject* recvData, QString* tempUserName){
+    QString fairyDescriptor=recvData->value("fairyname").toString();
+    QString *fairyName=new QString;
+    *fairyName=fairyDescriptor.section('_',0,0);
+    int index=fairyDescriptor.section('_',1,1).toInt();
+    qDebug()<<*tempUserName<<*fairyName<<index;
+    QSqlQuery query;
+    QString queryStr;
+    queryStr=QString("DELETE FROM fairies where username='%1' AND fairyname='%2' AND no=%3 ").arg(*tempUserName).arg(*fairyName).arg(index);
+    query.exec(queryStr);
+    addFairyNum(tempUserName,fairyName,-1);
+    delete fairyName;
+}
+
+void myTcpServer::updateWinRate(QString* tempUserName,int winOrLose){
+    int currentWinCount,currentBattleCount;
+    QSqlQuery query;
+    QString queryStr;
+    queryStr=QString("SELECT battleCount, winCount FROM user where username='%1'").arg(*tempUserName);
+    query.exec(queryStr);
+    if(query.next()){
+        currentBattleCount=query.value(0).toInt();
+        currentWinCount=query.value(1).toInt();
+    }
+    if(winOrLose) ++currentWinCount;
+    queryStr=QString("UPDATE user SET battleCount=%1, winCount=%2 WHERE username='%3'").arg(currentBattleCount+1).arg(currentWinCount).arg(*tempUserName);
+    query.exec(queryStr);
+}
+
+void myTcpServer::updateBadge(){
+    int i;
+    QSqlQuery query;
+    QString queryStr;
+    queryStr=QString("SELECT username FROM user");
+    query.exec(queryStr);
+    while(query.next()){
+        int numBadge,stageBadge;
+        //numBadge
+        QList<int>* typeNumList;
+        QString *username=new QString;
+        *username=query.value("username").toString();
+        qDebug()<<*username;
+        typeNumList=getUserFairiesTypeNum(username);
+        int totalNum=0;
+        for(i=0;i<FAIRY_TYPE_NUM;i++){
+            totalNum+=typeNumList->at(i);
+        }
+        qDebug()<<totalNum;
+        if(totalNum<5) numBadge=0;
+        else if(totalNum<10) numBadge=1;
+        else if(totalNum<15) numBadge=2;
+        else numBadge=3;
+        //stageBadge
+        QSqlQuery selectquery;
+        queryStr=QString("SELECT username FROM fairies WHERE username='%1' AND stage=15").arg(*username);
+        qDebug()<<queryStr;
+        selectquery.exec(queryStr);
+        int fullStageNum=0;
+        while(selectquery
+              .next()) ++fullStageNum;
+        if(fullStageNum<3) stageBadge=0;
+        else if(fullStageNum<5) stageBadge=1;
+        else if(fullStageNum<8) stageBadge=2;
+        else stageBadge=3;
+
+        QSqlQuery updateQuery;
+        queryStr=QString("UPDATE user SET FairiesNumBadge=%1 WHERE username='%2'").arg(numBadge).arg(*username);
+        updateQuery.exec(queryStr);
+        qDebug()<<queryStr;
+        queryStr=QString("UPDATE user SET FairiesStageBadge=%1 WHERE username='%2'").arg(stageBadge).arg(*username);
+        updateQuery.exec(queryStr);
+        qDebug()<<queryStr;
+    }
 }
